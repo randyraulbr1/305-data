@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mis Horas</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#30D158">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Horas">
+<style>
+  :root{
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #1C1C1E;
+    --text-secondary: #8E8E93;
+    --separator: rgba(60,60,67,0.12);
+    --blue: #007AFF;
+    --green: #30D158;
+    --orange: #FF9F0A;
+    --red: #FF3B30;
+    --green-bg: rgba(48,209,88,0.12);
+    --orange-bg: rgba(255,159,10,0.14);
+    --red-bg: rgba(255,59,48,0.12);
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    display:flex;
+    justify-content:center;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    padding: 18px 16px 100px;
+    position:relative;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 8px 4px 18px;
+  }
+  header h1{ font-size: 30px; font-weight: 750; letter-spacing: -0.5px; margin:0; }
+  header .date{ font-size:13px; color:var(--text-secondary); margin-top:2px; text-transform:capitalize; }
+  .header-actions{ display:flex; gap:8px; }
+  .icon-btn{
+    width:38px;height:38px; border-radius:50%; background: var(--card); border:none;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); color: var(--text); cursor:pointer;
+  }
+  .icon-btn:active{ transform: scale(0.94); }
+
+  .card{
+    background: var(--card); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04);
+  }
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+    padding: 6px 12px; border-radius: 100px; margin-bottom: 16px;
+  }
+  .status-pill .dot{ width:7px;height:7px;border-radius:50%; }
+  .status-idle{ background: rgba(142,142,147,0.14); color: var(--text-secondary); }
+  .status-idle .dot{ background: var(--text-secondary); }
+  .status-working{ background: var(--green-bg); color:#248A3D; }
+  .status-working .dot{ background: var(--green); box-shadow: 0 0 0 4px rgba(48,209,88,0.18); }
+  .status-lunch{ background: var(--orange-bg); color:#B25E00; }
+  .status-lunch .dot{ background: var(--orange); box-shadow: 0 0 0 4px rgba(255,159,10,0.18); }
+
+  .timer-display{ font-variant-numeric: tabular-nums; font-size: 52px; font-weight: 700; letter-spacing: -1px; line-height:1; margin-bottom: 6px; }
+  .earnings-live{ font-size: 17px; color: var(--text-secondary); font-weight: 500; }
+  .earnings-live b{ color: var(--green); font-weight:700; }
+
+  .ring-wrap{ display:flex; flex-direction:column; align-items:center; padding: 6px 0 4px; }
+  .ring-wrap svg{ transform: rotate(-90deg); }
+  .ring-center{ position:relative; width:200px;height:200px; }
+  .ring-text{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ring-text .t{ font-variant-numeric: tabular-nums; font-size: 34px; font-weight:700; letter-spacing:-0.5px; }
+  .ring-text .l{ font-size:12px; color:var(--text-secondary); font-weight:600; margin-top:2px; }
+
+  .btn{ border:none; border-radius: 100px; font-size:17px; font-weight:600; padding: 15px 20px; cursor:pointer; width:100%; transition: transform .08s ease; }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--green); color:white; }
+  .btn-danger{ background: var(--red-bg); color: var(--red); }
+  .btn-warning{ background: var(--orange-bg); color:#B25E00; }
+  .btn-secondary{ background: rgba(0,122,255,0.1); color: var(--blue); }
+  .btn-outline{ background:transparent; color:var(--red); border:1px solid var(--red-bg); }
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ flex:1; }
+  .btn-sm{ padding:10px 14px; font-size:14px; }
+
+  .summary-row{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px; }
+  .summary-row .label{ font-size:13px; color:var(--text-secondary); font-weight:600; }
+  .summary-row .amount{ font-size:34px; font-weight:750; letter-spacing:-0.5px; margin-top:4px; }
+  .summary-sub{ font-size:13px; color:var(--text-secondary); margin-top:2px; }
+
+  .section-title{ display:flex; justify-content:space-between; align-items:center; font-size:20px; font-weight:700; letter-spacing:-0.3px; margin: 22px 4px 10px; }
+  .section-title .link{ font-size:14px; font-weight:600; color:var(--blue); cursor:pointer; }
+
+  .history-item{ display:flex; justify-content:space-between; align-items:center; padding: 12px 2px; border-bottom: 1px solid var(--separator); cursor:pointer; }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item .left .type{ font-size:15px; font-weight:600; }
+  .history-item .left .sub{ font-size:12.5px; color:var(--text-secondary); margin-top:2px; }
+  .history-item .amount{ font-size:16px; font-weight:700; }
+  .amount.pos{ color: var(--green); }
+  .amount.neg{ color: var(--red); }
+  .empty-hint{ color:var(--text-secondary); font-size:14px; text-align:center; padding:18px 6px; }
+
+  /* Tab bar */
+  .tabbar{
+    position:fixed; left:0; right:0; bottom:0;
+    display:flex; justify-content:center;
+    background: rgba(249,249,249,0.94);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--separator);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 500;
+  }
+  .tabbar-inner{ width:100%; max-width:430px; display:flex; }
+  .tab-btn{
+    flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px;
+    color: var(--text-secondary); font-size:11px; font-weight:600; padding:4px 0; cursor:pointer;
+  }
+  .tab-btn.active{ color: var(--blue); }
+  .tab-btn svg{ width:23px; height:23px; }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* Calendario */
+  .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; }
+  .cal-nav .cal-title{ font-size:17px; font-weight:700; text-transform:capitalize; }
+  .cal-nav button{ background: var(--bg); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:4px; }
+  .cal-dow{ text-align:center; font-size:11px; font-weight:700; color:var(--text-secondary); padding-bottom:6px; }
+  .cal-day{
+    aspect-ratio: 1/1; border-radius: 12px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:13px; font-weight:600; cursor:pointer; position:relative; background: var(--bg);
+  }
+  .cal-day.empty{ visibility:hidden; cursor:default; }
+  .cal-day.today{ outline: 2px solid var(--blue); outline-offset:-2px; }
+  .cal-day.worked{ background: var(--green-bg); color:#248A3D; }
+  .cal-day .amt{ font-size:8.5px; font-weight:700; margin-top:1px; color:#248A3D; }
+  .cal-day .wd-dot{ position:absolute; top:4px; right:4px; width:5px; height:5px; border-radius:50%; background: var(--red); }
+  .cal-legend{ display:flex; gap:16px; margin-top:14px; font-size:12px; color:var(--text-secondary); }
+  .cal-legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .cal-legend i{ width:8px;height:8px;border-radius:50%; display:inline-block; }
+  .cal-summary{ display:flex; justify-content:space-between; margin-top:16px; padding-top:14px; border-top:1px solid var(--separator); }
+  .cal-summary .s{ text-align:center; flex:1; }
+  .cal-summary .s .v{ font-size:18px; font-weight:750; }
+  .cal-summary .s .k{ font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  /* Banner de alerta */
+  .banner{
+    position:fixed; left:16px; right:16px; top:16px; max-width:398px; margin:0 auto;
+    background: var(--red); color:white; padding:14px 16px; border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(255,59,48,0.35); font-size:14px; font-weight:600; z-index: 999;
+    transform: translateY(-140%); transition: transform .35s cubic-bezier(.34,1.4,.64,1);
+  }
+  .banner.show{ transform: translateY(0); }
+  .banner .b-title{ font-size:15px; font-weight:750; margin-bottom:2px; }
+
+  /* Modal / sheet */
+  .overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,0.35); display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity .25s ease; z-index: 1000;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .sheet{
+    background: var(--bg); width:100%; max-width:430px; border-radius: 24px 24px 0 0; padding: 10px 18px 28px;
+    transform: translateY(100%); transition: transform .3s cubic-bezier(.32,.72,0,1); max-height:88vh; overflow-y:auto;
+  }
+  .overlay.show .sheet{ transform: translateY(0); }
+  .sheet-handle{ width:36px;height:5px;border-radius:3px; background:#D1D1D6; margin: 6px auto 14px; }
+  .sheet h2{ font-size:20px; margin:4px 0 16px; }
+  .field{ margin-bottom:14px; }
+  .field label{ font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px; }
+  .field input{
+    width:100%; padding:13px 14px; border-radius: var(--radius-sm); border:1px solid var(--separator);
+    font-size:17px; background: var(--card); color:var(--text);
+  }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+  .note{ font-size:12.5px; color:var(--text-secondary); line-height:1.5; margin: 4px 0 16px; }
+  .confirm-actions{ display:flex; gap:10px; margin-top:6px; }
+  .computed-box{
+    background: var(--green-bg); border-radius: var(--radius-sm); padding:12px 14px; margin-bottom:16px;
+    display:flex; justify-content:space-between; font-size:14px; font-weight:600; color:#248A3D;
+  }
+  .day-session-item{ display:flex; justify-content:space-between; align-items:center; padding:11px 2px; border-bottom:1px solid var(--separator); cursor:pointer; }
+  .day-session-item:last-child{ border-bottom:none; }
+
+  ::selection{ background: rgba(0,122,255,0.2); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div>
+      <h1>Mis Horas</h1>
+      <div class="date" id="today-date"></div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="install-btn" style="display:none;" aria-label="Instalar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+      <button class="icon-btn" id="settings-btn" aria-label="Ajustes">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== VISTA: INICIO ===== -->
+  <div class="view active" id="view-home">
+    <div class="card" id="main-card">
+      <span class="status-pill status-idle" id="status-pill"><span class="dot"></span><span id="status-text">Sin iniciar</span></span>
+
+      <div id="work-view">
+        <div class="timer-display" id="work-timer">00:00:00</div>
+        <div class="earnings-live">Ganado en esta sesión: <b id="work-earnings">$0.00</b></div>
+      </div>
+
+      <div id="lunch-view" style="display:none;">
+        <div class="ring-wrap">
+          <div class="ring-center">
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="88" stroke="rgba(0,0,0,0.06)" stroke-width="14" fill="none"/>
+              <circle id="ring-progress" cx="100" cy="100" r="88" stroke="#30D158" stroke-width="14" fill="none"
+                      stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="553"/>
+            </svg>
+            <div class="ring-text">
+              <div class="t" id="lunch-timer">00:00</div>
+              <div class="l" id="lunch-label">de 30:00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div id="idle-actions"><button class="btn btn-primary" id="start-work-btn">Iniciar trabajo</button></div>
+        <div id="working-actions" class="btn-row" style="display:none;">
+          <button class="btn btn-warning" id="start-lunch-btn">Iniciar almuerzo</button>
+          <button class="btn btn-danger" id="end-work-btn">Finalizar</button>
+        </div>
+        <div id="lunch-actions" style="display:none;">
+          <button class="btn btn-primary" id="end-lunch-btn">Terminar almuerzo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="summary-row">
+        <div>
+          <div class="label">TOTAL ACUMULADO</div>
+          <div class="amount" id="total-amount">$0.00</div>
+          <div class="summary-sub" id="total-sub">Nada acumulado todavía</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="withdraw-btn">Retirar</button>
+    </div>
+
+    <div class="section-title">Historial<span class="link" id="add-manual-btn">+ Agregar</span></div>
+    <div class="card" style="padding: 6px 16px;">
+      <div id="history-list"><div class="empty-hint">Todavía no hay registros</div></div>
+    </div>
+  </div>
+
+  <!-- ===== VISTA: CALENDARIO ===== -->
+  <div class="view" id="view-calendar">
+    <div class="card">
+      <div class="cal-nav">
+        <button id="cal-prev">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="cal-title" id="cal-title">mes</div>
+        <button id="cal-next">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      <div class="cal-grid" id="cal-dow"></div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:4px;"></div>
+      <div class="cal-legend">
+        <span><i style="background:var(--green-bg); border:1px solid var(--green);"></i>Día trabajado</span>
+        <span><i style="background:var(--red);"></i>Retiro</span>
+      </div>
+      <div class="cal-summary">
+        <div class="s"><div class="v" id="cal-hours">0h</div><div class="k">horas del mes</div></div>
+        <div class="s"><div class="v" id="cal-earned">$0.00</div><div class="k">ganado del mes</div></div>
+        <div class="s"><div class="v" id="cal-days">0</div><div class="k">días trabajados</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab-btn active" id="tab-home" data-view="view-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      Inicio
+    </button>
+    <button class="tab-btn" id="tab-calendar" data-view="view-calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Calendario
+    </button>
+  </div>
+</div>
+
+<div class="banner" id="banner">
+  <div class="b-title" id="banner-title">Aviso</div>
+  <div id="banner-body"></div>
+</div>
+
+<!-- Sheet ajustes -->
+<div class="overlay" id="settings-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Ajustes</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Pago por hora</label>
+        <input type="number" id="rate-input" inputmode="decimal" placeholder="15.00">
+      </div>
+      <div class="field" style="max-width:90px;">
+        <label>Moneda</label>
+        <input type="text" id="currency-input" maxlength="3" placeholder="$">
+      </div>
+    </div>
+    <div class="field">
+      <label>Límite de almuerzo (minutos)</label>
+      <input type="number" id="lunch-limit-input" inputmode="numeric" placeholder="30">
+    </div>
+    <button class="btn btn-secondary" id="notif-btn" style="margin-bottom:10px;">Activar notificaciones</button>
+    <div class="note" id="notif-status">Las notificaciones te avisan cuando cumples el límite de almuerzo.</div>
+
+    <div class="section-title" style="margin:18px 4px 8px; font-size:16px;">Instalación</div>
+    <button class="btn btn-primary" id="install-app-btn" style="margin-bottom:6px;">Instalar app en el teléfono</button>
+    <div class="note" id="install-status"></div>
+
+    <div class="section-title" style="margin:18px 4px 8px; font-size:16px;">Respaldo de datos</div>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <button class="btn btn-secondary btn-sm" id="export-btn">Exportar (.json)</button>
+      <button class="btn btn-secondary btn-sm" id="copy-btn">Copiar datos</button>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="import-btn" style="margin-bottom:6px;">Importar archivo .json</button>
+    <input type="file" id="import-file" accept="application/json" style="display:none;">
+    <div class="note">Exporta cuando quieras guardar una copia o pasar tus datos a otra versión de la app. El archivo (o el texto copiado) también sirve para pegárselo a Claude u otra IA y que siga tu progreso sin perder nada.</div>
+
+    <button class="btn btn-primary" id="save-settings-btn">Guardar</button>
+  </div>
+</div>
+
+<!-- Sheet confirmar retiro -->
+<div class="overlay" id="withdraw-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Retirar acumulado</h2>
+    <div class="note" id="withdraw-note" style="font-size:15px; color:var(--text);"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-danger" id="withdraw-cancel-btn">Cancelar</button>
+      <button class="btn btn-primary" id="withdraw-confirm-btn">Confirmar retiro</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sheet editar/crear entrada -->
+<div class="overlay" id="entry-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="entry-title">Sesión</h2>
+
+    <div id="entry-session-fields">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="entry-date">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Hora inicio</label>
+          <input type="time" id="entry-start">
+        </div>
+        <div class="field">
+          <label>Hora fin</label>
+          <input type="time" id="entry-end">
+        </div>
+      </div>
+      <div class="field">
+        <label>Minutos de almuerzo</label>
+        <input type="number" id="entry-lunch" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="computed-box">
+        <span id="entry-computed-hours">0.00 h</span>
+        <span id="entry-computed-amount">$0.00</span>
+      </div>
+    </div>
+
+    <div id="entry-withdraw-fields" style="display:none;">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="entry-w-date">
+      </div>
+      <div class="field">
+        <label>Monto retirado</label>
+        <input type="number" id="entry-w-amount" inputmode="decimal" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="confirm-actions">
+      <button class="btn btn-outline" id="entry-delete-btn">Eliminar</button>
+      <button class="btn btn-primary" id="entry-save-btn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sheet detalle del día -->
+<div class="overlay" id="day-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="day-title">Día</h2>
+    <div id="day-list"></div>
+    <button class="btn btn-secondary" id="day-add-btn" style="margin-top:14px;">+ Agregar sesión ese día</button>
+  </div>
+</div>
+
+<!-- Sheet ayuda instalación -->
+<div class="overlay" id="install-help-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Instalar en tu teléfono</h2>
+    <div class="note" style="font-size:15px; color:var(--text); line-height:1.7;">
+      Tu Chrome no muestra el instalador automático todavía, pero puedes agregarla igual en unos toques:<br><br>
+      1. Toca el menú <b>⋮</b> arriba a la derecha de Chrome<br>
+      2. Busca <b>"Agregar a pantalla de inicio"</b> (o "Instalar aplicación" si aparece)<br>
+      3. Confirma el nombre y toca <b>Agregar</b><br><br>
+      Te queda un ícono en tu pantalla de inicio que abre la app a pantalla completa, igual que cualquier otra.
+    </div>
+    <button class="btn btn-primary" id="install-help-close" style="margin-top:6px;">Entendido</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Almacenamiento ----------
+  async function saveKey(key, value){
+    const json = JSON.stringify(value);
+    try{
+      if (window.storage && typeof window.storage.set === 'function'){
+        await window.storage.set(key, json, false);
+        return;
+      }
+    }catch(e){}
+    try{ localStorage.setItem(key, json); }catch(e){}
+  }
+  async function loadKey(key){
+    try{
+      if (window.storage && typeof window.storage.get === 'function'){
+        const r = await window.storage.get(key, false);
+        return r ? JSON.parse(r.value) : null;
+      }
+    }catch(e){}
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : null;
+    }catch(e){ return null; }
+  }
+
+  function genId(){ return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function dateStr(d){ const dt = (d instanceof Date) ? d : new Date(d); const y=dt.getFullYear(); const m=String(dt.getMonth()+1).padStart(2,'0'); const day=String(dt.getDate()).padStart(2,'0'); return y+'-'+m+'-'+day; }
+  function timeStr(d){ const dt=(d instanceof Date)?d:new Date(d); return String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0'); }
+
+  // ---------- Estado ----------
+  let settings = { rate: 15, currency: '$', lunchLimit: 30 };
+  let state = {
+    status: 'idle', workAccumMs: 0, periodStart: null, lunchStart: null,
+    sessionStart: null, sessionLunchMs: 0,
+    total: 0, history: []
+  };
+  let warned25 = false, warned30 = false, lastRepeatMark = 0;
+  let calMonth = new Date().getMonth(), calYear = new Date().getFullYear();
+  let editingEntryId = null;
+  let dayAddDate = null;
+
+  function fmtMoney(n){ return settings.currency + (Math.round(n*100)/100).toFixed(2); }
+  function fmtHMS(ms){
+    const s = Math.max(0, Math.floor(ms/1000));
+    return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  }
+  function fmtMS(totalSeconds){
+    const s = Math.max(0, Math.floor(totalSeconds));
+    return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  }
+
+  const el = id => document.getElementById(id);
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      el(btn.dataset.view).classList.add('active');
+      if(btn.dataset.view === 'view-calendar') renderCalendar();
+    });
+  });
+
+  // ---------- Render principal ----------
+  const statusPill = el('status-pill'), statusText = el('status-text');
+  const workView = el('work-view'), lunchView = el('lunch-view');
+  const idleActions = el('idle-actions'), workingActions = el('working-actions'), lunchActions = el('lunch-actions');
+  const ringProgress = el('ring-progress');
+  const RING_CIRC = 2 * Math.PI * 88;
+
+  function currentWorkMs(){
+    let ms = state.workAccumMs;
+    if(state.status === 'working' && state.periodStart) ms += (Date.now() - state.periodStart);
+    return ms;
+  }
+
+  function render(){
+    statusPill.className = 'status-pill status-' + state.status;
+    statusText.textContent = state.status === 'idle' ? 'Sin iniciar' : (state.status === 'working' ? 'Trabajando' : 'Almuerzo');
+    workView.style.display = state.status === 'lunch' ? 'none' : 'block';
+    lunchView.style.display = state.status === 'lunch' ? 'block' : 'none';
+    idleActions.style.display = state.status === 'idle' ? 'block' : 'none';
+    workingActions.style.display = state.status === 'working' ? 'flex' : 'none';
+    lunchActions.style.display = state.status === 'lunch' ? 'block' : 'none';
+
+    if(state.status !== 'lunch'){
+      const ms = currentWorkMs();
+      el('work-timer').textContent = fmtHMS(ms);
+      el('work-earnings').textContent = fmtMoney((ms/3600000) * settings.rate);
+    } else {
+      const elapsedSec = (Date.now() - state.lunchStart)/1000;
+      const limitSec = settings.lunchLimit * 60;
+      el('lunch-timer').textContent = fmtMS(elapsedSec);
+      el('lunch-label').textContent = 'de ' + fmtMS(limitSec);
+      const frac = Math.min(1, elapsedSec / limitSec);
+      ringProgress.setAttribute('stroke-dasharray', RING_CIRC);
+      ringProgress.setAttribute('stroke-dashoffset', RING_CIRC * (1 - frac));
+      let color = '#30D158';
+      if(elapsedSec >= limitSec) color = '#FF3B30';
+      else if(elapsedSec >= limitSec * 0.8) color = '#FF9F0A';
+      ringProgress.setAttribute('stroke', color);
+    }
+
+    el('total-amount').textContent = fmtMoney(state.total);
+    const sessionsCount = state.history.filter(h => h.type === 'session').length;
+    el('total-sub').textContent = sessionsCount ? (sessionsCount + (sessionsCount===1?' sesión registrada':' sesiones registradas')) : 'Nada acumulado todavía';
+
+    renderHistory();
+  }
+
+  function renderHistory(){
+    const list = el('history-list');
+    if(!state.history.length){ list.innerHTML = '<div class="empty-hint">Todavía no hay registros</div>'; return; }
+    const items = state.history.slice().sort((a,b)=> new Date(b.start||b.date) - new Date(a.start||a.date)).slice(0, 8);
+    list.innerHTML = items.map(h => {
+      if(h.type === 'withdraw'){
+        return '<div class="history-item" onclick="window.__openEntry(\'' + h.id + '\')"><div class="left"><div class="type">Retiro</div><div class="sub">' + h.date + '</div></div><div class="amount neg">-' + fmtMoney(h.amount) + '</div></div>';
+      }
+      const hrs = (h.seconds/3600).toFixed(2);
+      return '<div class="history-item" onclick="window.__openEntry(\'' + h.id + '\')"><div class="left"><div class="type">Sesión de trabajo</div><div class="sub">' + h.date + ' · ' + hrs + ' h</div></div><div class="amount pos">+' + fmtMoney(h.amount) + '</div></div>';
+    }).join('');
+  }
+
+  function setToday(){
+    const d = new Date();
+    el('today-date').textContent = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+  }
+
+  // ---------- Notificaciones ----------
+  function showBanner(title, body){
+    el('banner-title').textContent = title; el('banner-body').textContent = body;
+    const b = el('banner'); b.classList.add('show');
+    clearTimeout(showBanner._t); showBanner._t = setTimeout(()=> b.classList.remove('show'), 5000);
+  }
+  function playBeep(){
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.18].forEach(delay=>{
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = 880;
+        o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + delay + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.16);
+        o.start(ctx.currentTime + delay); o.stop(ctx.currentTime + delay + 0.18);
+      });
+    }catch(e){}
+  }
+  function notify(title, body){
+    showBanner(title, body); playBeep();
+    try{ if ('Notification' in window && Notification.permission === 'granted'){ new Notification(title, { body: body }); } }catch(e){}
+  }
+  function updateNotifStatus(){
+    const s = el('notif-status');
+    if(!('Notification' in window)){ s.textContent = 'Este navegador no soporta notificaciones nativas — usarás el aviso en pantalla y el sonido igualmente.'; return; }
+    if(Notification.permission === 'granted'){ s.textContent = 'Notificaciones activadas. Además siempre verás un aviso en pantalla y escucharás un sonido.'; }
+    else if (Notification.permission === 'denied'){ s.textContent = 'Notificaciones bloqueadas en este navegador. Igual recibirás el aviso en pantalla y el sonido.'; }
+    else { s.textContent = 'Actívalas para recibir el aviso aunque tengas la pestaña en segundo plano.'; }
+  }
+  el('notif-btn').addEventListener('click', async ()=>{
+    try{ if ('Notification' in window) await Notification.requestPermission(); }catch(e){}
+    updateNotifStatus();
+  });
+
+  // ---------- Acciones de trabajo ----------
+  el('start-work-btn').addEventListener('click', ()=>{
+    state.status = 'working'; state.workAccumMs = 0; state.periodStart = Date.now();
+    state.sessionStart = new Date().toISOString(); state.sessionLunchMs = 0;
+    persist(); render();
+  });
+  el('start-lunch-btn').addEventListener('click', ()=>{
+    state.workAccumMs += (Date.now() - state.periodStart); state.periodStart = null;
+    state.status = 'lunch'; state.lunchStart = Date.now();
+    warned25 = false; warned30 = false; lastRepeatMark = 0;
+    persist(); render();
+  });
+  el('end-lunch-btn').addEventListener('click', ()=>{
+    state.sessionLunchMs += (Date.now() - state.lunchStart);
+    state.status = 'working'; state.periodStart = Date.now(); state.lunchStart = null;
+    persist(); render();
+  });
+  el('end-work-btn').addEventListener('click', ()=>{
+    let ms = state.workAccumMs;
+    if(state.periodStart) ms += (Date.now() - state.periodStart);
+    const seconds = ms/1000;
+    const amount = (seconds/3600) * settings.rate;
+    const nowISO = new Date().toISOString();
+    state.total += amount;
+    state.history.push({
+      id: genId(), type:'session',
+      date: dateStr(state.sessionStart || nowISO),
+      start: state.sessionStart || nowISO, end: nowISO,
+      lunchMinutes: Math.round(state.sessionLunchMs/60000),
+      seconds: seconds, amount: amount, rate: settings.rate
+    });
+    state.status = 'idle'; state.workAccumMs = 0; state.periodStart = null;
+    state.lunchStart = null; state.sessionStart = null; state.sessionLunchMs = 0;
+    persist(); render();
+  });
+
+  // ---------- Retiro ----------
+  el('withdraw-btn').addEventListener('click', ()=>{
+    el('withdraw-note').textContent = 'Vas a retirar ' + fmtMoney(state.total) + '. El acumulado volverá a $0.00.';
+    el('withdraw-overlay').classList.add('show');
+  });
+  el('withdraw-cancel-btn').addEventListener('click', ()=> el('withdraw-overlay').classList.remove('show'));
+  el('withdraw-confirm-btn').addEventListener('click', ()=>{
+    if(state.total > 0){
+      state.history.push({ id: genId(), type:'withdraw', date: dateStr(new Date()), amount: state.total });
+      state.total = 0;
+    }
+    el('withdraw-overlay').classList.remove('show');
+    persist(); render();
+  });
+
+  // ---------- Sheet de entrada (crear/editar sesión o retiro) ----------
+  function computeSessionPreview(){
+    const dateV = el('entry-date').value, startV = el('entry-start').value, endV = el('entry-end').value;
+    const lunchMin = parseInt(el('entry-lunch').value, 10) || 0;
+    if(!dateV || !startV || !endV){ el('entry-computed-hours').textContent='0.00 h'; el('entry-computed-amount').textContent=fmtMoney(0); return {seconds:0, amount:0}; }
+    let start = new Date(dateV+'T'+startV+':00'), end = new Date(dateV+'T'+endV+':00');
+    if(end <= start) end = new Date(end.getTime() + 24*3600000); // cruza medianoche
+    let seconds = (end-start)/1000 - lunchMin*60;
+    if(seconds < 0) seconds = 0;
+    const rate = (editingEntryId && state.history.find(h=>h.id===editingEntryId)?.rate) || settings.rate;
+    const amount = (seconds/3600)*rate;
+    el('entry-computed-hours').textContent = (seconds/3600).toFixed(2) + ' h';
+    el('entry-computed-amount').textContent = fmtMoney(amount);
+    return { seconds, amount, start, end, rate };
+  }
+  ['entry-date','entry-start','entry-end','entry-lunch'].forEach(id=> el(id).addEventListener('input', computeSessionPreview));
+
+  function openEntrySheet(id, prefillDate){
+    editingEntryId = id || null;
+    const entry = id ? state.history.find(h=>h.id===id) : null;
+    const isWithdraw = entry && entry.type === 'withdraw';
+
+    el('entry-session-fields').style.display = isWithdraw ? 'none' : 'block';
+    el('entry-withdraw-fields').style.display = isWithdraw ? 'block' : 'none';
+    el('entry-delete-btn').style.display = entry ? 'block' : 'none';
+
+    if(isWithdraw){
+      el('entry-title').textContent = 'Retiro';
+      el('entry-w-date').value = entry.date;
+      el('entry-w-amount').value = entry.amount.toFixed(2);
+    } else {
+      el('entry-title').textContent = entry ? 'Editar sesión' : 'Agregar sesión';
+      const d = entry ? entry.date : (prefillDate || dateStr(new Date()));
+      el('entry-date').value = d;
+      el('entry-start').value = entry ? timeStr(entry.start) : '';
+      el('entry-end').value = entry ? timeStr(entry.end) : '';
+      el('entry-lunch').value = entry ? entry.lunchMinutes : 0;
+      computeSessionPreview();
+    }
+    el('entry-overlay').classList.add('show');
+  }
+  window.__openEntry = openEntrySheet;
+
+  el('add-manual-btn').addEventListener('click', ()=> openEntrySheet(null));
+
+  el('entry-save-btn').addEventListener('click', ()=>{
+    const isWithdraw = el('entry-withdraw-fields').style.display !== 'none';
+    if(isWithdraw){
+      const newAmount = parseFloat(el('entry-w-amount').value) || 0;
+      const newDate = el('entry-w-date').value || dateStr(new Date());
+      if(editingEntryId){
+        const entry = state.history.find(h=>h.id===editingEntryId);
+        state.total += (entry.amount - newAmount);
+        entry.amount = newAmount; entry.date = newDate;
+      } else {
+        state.total -= newAmount;
+        state.history.push({ id: genId(), type:'withdraw', date: newDate, amount: newAmount });
+      }
+    } else {
+      const dateV = el('entry-date').value, startV = el('entry-start').value, endV = el('entry-end').value;
+      if(!dateV || !startV || !endV){ el('entry-overlay').classList.remove('show'); return; }
+      const lunchMin = parseInt(el('entry-lunch').value, 10) || 0;
+      let start = new Date(dateV+'T'+startV+':00'), end = new Date(dateV+'T'+endV+':00');
+      if(end <= start) end = new Date(end.getTime() + 24*3600000);
+      let seconds = (end-start)/1000 - lunchMin*60;
+      if(seconds < 0) seconds = 0;
+
+      if(editingEntryId){
+        const entry = state.history.find(h=>h.id===editingEntryId);
+        const amount = (seconds/3600)*entry.rate;
+        state.total += (amount - entry.amount);
+        entry.date = dateV; entry.start = start.toISOString(); entry.end = end.toISOString();
+        entry.lunchMinutes = lunchMin; entry.seconds = seconds; entry.amount = amount;
+      } else {
+        const amount = (seconds/3600)*settings.rate;
+        state.total += amount;
+        state.history.push({ id: genId(), type:'session', date: dateV, start: start.toISOString(), end: end.toISOString(), lunchMinutes: lunchMin, seconds: seconds, amount: amount, rate: settings.rate });
+      }
+    }
+    el('entry-overlay').classList.remove('show');
+    persist(); render();
+    if(el('view-calendar').classList.contains('active')) renderCalendar();
+    if(el('day-overlay').classList.contains('show') && dayAddDate) openDaySheet(dayAddDate);
+  });
+
+  el('entry-delete-btn').addEventListener('click', ()=>{
+    if(!editingEntryId){ el('entry-overlay').classList.remove('show'); return; }
+    const entry = state.history.find(h=>h.id===editingEntryId);
+    if(entry){
+      if(entry.type === 'session') state.total -= entry.amount;
+      else state.total += entry.amount;
+      state.history = state.history.filter(h=>h.id!==editingEntryId);
+    }
+    el('entry-overlay').classList.remove('show');
+    persist(); render();
+    if(el('view-calendar').classList.contains('active')) renderCalendar();
+    if(el('day-overlay').classList.contains('show') && dayAddDate) openDaySheet(dayAddDate);
+  });
+
+  // ---------- Calendario ----------
+  const DOW = ['lun','mar','mié','jue','vie','sáb','dom'];
+  function renderCalendar(){
+    const dowRow = el('cal-dow');
+    dowRow.innerHTML = DOW.map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+
+    const first = new Date(calYear, calMonth, 1);
+    const label = first.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+    el('cal-title').textContent = label;
+
+    let startOffset = first.getDay() - 1; if(startOffset < 0) startOffset = 6; // lunes=0
+    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+    const todayStr = dateStr(new Date());
+
+    // agregados por día
+    const byDay = {};
+    state.history.forEach(h=>{
+      if(!byDay[h.date]) byDay[h.date] = { seconds:0, amount:0, withdraw:false, sessions:0 };
+      if(h.type === 'session'){ byDay[h.date].seconds += h.seconds; byDay[h.date].amount += h.amount; byDay[h.date].sessions++; }
+      else { byDay[h.date].withdraw = true; }
+    });
+
+    let html = '';
+    for(let i=0;i<startOffset;i++) html += '<div class="cal-day empty"></div>';
+    let monthSeconds=0, monthAmount=0, monthDays=0;
+    for(let day=1; day<=daysInMonth; day++){
+      const ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const agg = byDay[ds];
+      const worked = agg && agg.sessions > 0;
+      if(worked){ monthSeconds += agg.seconds; monthAmount += agg.amount; monthDays++; }
+      let cls = 'cal-day' + (worked?' worked':'') + (ds===todayStr?' today':'');
+      html += '<div class="'+cls+'" onclick="window.__openDay(\''+ds+'\')">' +
+              (agg && agg.withdraw ? '<span class="wd-dot"></span>' : '') +
+              '<span>'+day+'</span>' +
+              (worked ? '<span class="amt">'+fmtMoney(agg.amount)+'</span>' : '') +
+              '</div>';
+    }
+    el('cal-grid').innerHTML = html;
+    el('cal-hours').textContent = (monthSeconds/3600).toFixed(1)+'h';
+    el('cal-earned').textContent = fmtMoney(monthAmount);
+    el('cal-days').textContent = monthDays;
+  }
+  el('cal-prev').addEventListener('click', ()=>{ calMonth--; if(calMonth<0){calMonth=11; calYear--;} renderCalendar(); });
+  el('cal-next').addEventListener('click', ()=>{ calMonth++; if(calMonth>11){calMonth=0; calYear++;} renderCalendar(); });
+
+  function openDaySheet(ds){
+    dayAddDate = ds;
+    const d = new Date(ds+'T00:00:00');
+    el('day-title').textContent = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+    const entries = state.history.filter(h=>h.date===ds);
+    if(!entries.length){ el('day-list').innerHTML = '<div class="empty-hint">Sin registros ese día</div>'; }
+    else {
+      el('day-list').innerHTML = entries.map(h=>{
+        if(h.type==='withdraw'){
+          return '<div class="day-session-item" onclick="window.__openEntry(\''+h.id+'\')"><div><div style="font-weight:600;">Retiro</div></div><div class="amount neg">-'+fmtMoney(h.amount)+'</div></div>';
+        }
+        return '<div class="day-session-item" onclick="window.__openEntry(\''+h.id+'\')"><div><div style="font-weight:600;">'+timeStr(h.start)+' – '+timeStr(h.end)+'</div><div style="font-size:12px;color:var(--text-secondary);">'+(h.seconds/3600).toFixed(2)+' h · almuerzo '+h.lunchMinutes+' min</div></div><div class="amount pos">+'+fmtMoney(h.amount)+'</div></div>';
+      }).join('');
+    }
+    el('day-overlay').classList.add('show');
+  }
+  window.__openDay = openDaySheet;
+  el('day-add-btn').addEventListener('click', ()=>{
+    el('day-overlay').classList.remove('show');
+    openEntrySheet(null, dayAddDate);
+  });
+
+  // ---------- Ajustes ----------
+  el('settings-btn').addEventListener('click', ()=>{
+    el('rate-input').value = settings.rate; el('currency-input').value = settings.currency; el('lunch-limit-input').value = settings.lunchLimit;
+    updateNotifStatus(); updateInstallStatus(); el('settings-overlay').classList.add('show');
+  });
+  el('save-settings-btn').addEventListener('click', ()=>{
+    const rate = parseFloat(el('rate-input').value);
+    const currency = el('currency-input').value.trim() || '$';
+    const lunchLimit = parseInt(el('lunch-limit-input').value, 10);
+    settings.rate = isNaN(rate) ? settings.rate : rate;
+    settings.currency = currency;
+    settings.lunchLimit = isNaN(lunchLimit) || lunchLimit <= 0 ? settings.lunchLimit : lunchLimit;
+    saveKey('settings', settings);
+    el('settings-overlay').classList.remove('show');
+    render();
+  });
+  // ---------- Exportar / Importar / Copiar datos ----------
+  function buildExportPayload(){
+    return {
+      app: 'Mis Horas', exportVersion: 1, exportedAt: new Date().toISOString(),
+      settings: settings, state: state
+    };
+  }
+  function humanSummary(payload){
+    const s = payload.state;
+    const sessions = s.history.filter(h=>h.type==='session');
+    const withdrawals = s.history.filter(h=>h.type==='withdraw');
+    const totalHours = sessions.reduce((a,h)=>a+h.seconds,0)/3600;
+    let lines = [];
+    lines.push('# Mis Horas — resumen exportado');
+    lines.push('Exportado: ' + payload.exportedAt);
+    lines.push('Pago por hora: ' + payload.settings.currency + payload.settings.rate + ' | Límite de almuerzo: ' + payload.settings.lunchLimit + ' min');
+    lines.push('Estado actual: ' + s.status);
+    lines.push('Total acumulado sin retirar: ' + payload.settings.currency + s.total.toFixed(2));
+    lines.push('Sesiones registradas: ' + sessions.length + ' (' + totalHours.toFixed(2) + ' h en total)');
+    lines.push('Retiros registrados: ' + withdrawals.length);
+    lines.push('');
+    lines.push('## Datos completos (JSON) para continuar sin perder nada:');
+    lines.push('```json');
+    lines.push(JSON.stringify(payload, null, 2));
+    lines.push('```');
+    return lines.join('\n');
+  }
+
+  el('export-btn').addEventListener('click', ()=>{
+    const payload = buildExportPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fname = 'mis-horas-backup-' + dateStr(new Date()) + '.json';
+    a.href = url; a.download = fname; document.body.appendChild(a); a.click();
+    a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    showBanner('Datos exportados', 'Se descargó ' + fname);
+  });
+
+  el('copy-btn').addEventListener('click', async ()=>{
+    const text = humanSummary(buildExportPayload());
+    try{
+      await navigator.clipboard.writeText(text);
+      showBanner('Copiado', 'Pega este texto en tu chat con Claude para que siga tu progreso.');
+    }catch(e){
+      // Fallback: mostrar en un prompt seleccionable
+      window.prompt('Copia este texto manualmente:', text);
+    }
+  });
+
+  el('import-btn').addEventListener('click', ()=> el('import-file').click());
+  el('import-file').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const payload = JSON.parse(reader.result);
+        const incoming = payload.state ? payload : { settings: payload.settings, state: payload };
+        if(!incoming.state || !Array.isArray(incoming.state.history)) throw new Error('formato inválido');
+        const ok = window.confirm('Esto reemplazará todos los datos actuales de la app por los del archivo importado. ¿Continuar?');
+        if(!ok) return;
+        if(incoming.settings) settings = Object.assign(settings, incoming.settings);
+        state = Object.assign({ status:'idle', workAccumMs:0, periodStart:null, lunchStart:null, sessionStart:null, sessionLunchMs:0, total:0, history:[] }, incoming.state);
+        saveKey('settings', settings); persist();
+        render(); if(el('view-calendar').classList.contains('active')) renderCalendar();
+        showBanner('Datos importados', 'Se restauraron los datos del archivo.');
+      }catch(err){
+        showBanner('No se pudo importar', 'El archivo no tiene un formato válido.');
+      }
+      el('import-file').value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  [el('settings-overlay'), el('withdraw-overlay'), el('entry-overlay'), el('day-overlay'), el('install-help-overlay')].forEach(ov=>{
+    ov.addEventListener('click', (e)=>{ if(e.target === ov) ov.classList.remove('show'); });
+  });
+
+  // ---------- Instalación PWA ----------
+  let deferredPrompt = null;
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function updateInstallStatus(){
+    const s = el('install-status'), btn = el('install-app-btn');
+    if(isStandalone()){
+      s.textContent = 'Ya está instalada en este teléfono ✓';
+      btn.textContent = 'Ya instalada';
+      btn.disabled = true;
+    } else if (deferredPrompt){
+      s.textContent = 'Lista para instalar.';
+      btn.textContent = 'Instalar app en el teléfono';
+      btn.disabled = false;
+    } else {
+      s.textContent = 'Si el botón no abre el instalador automático, te muestro los pasos manuales (toma 10 segundos).';
+      btn.textContent = 'Instalar app en el teléfono';
+      btn.disabled = false;
+    }
+  }
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault(); deferredPrompt = e; el('install-btn').style.display = 'flex'; updateInstallStatus();
+  });
+  window.addEventListener('appinstalled', ()=>{ deferredPrompt = null; updateInstallStatus(); });
+
+  async function attemptInstall(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      el('install-btn').style.display='none';
+      updateInstallStatus();
+      if(choice && choice.outcome === 'dismissed'){ el('install-help-overlay').classList.add('show'); }
+    } else {
+      el('install-help-overlay').classList.add('show');
+    }
+  }
+  el('install-btn').addEventListener('click', attemptInstall);
+  el('install-app-btn').addEventListener('click', attemptInstall);
+  el('install-help-close').addEventListener('click', ()=> el('install-help-overlay').classList.remove('show'));
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('service-worker.js').then(reg=>{
+        reg.update(); // revisa si hay versión nueva cada vez que se abre
+      }).catch(()=>{});
+    });
+    let refreshed = false;
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(refreshed) return; refreshed = true;
+      window.location.reload(); // aplica la actualización automáticamente
+    });
+  }
+
+  // ---------- Persistencia / init ----------
+  function persist(){ saveKey('state', state); }
+
+  async function init(){
+    setToday();
+    const savedSettings = await loadKey('settings');
+    if(savedSettings) settings = Object.assign(settings, savedSettings);
+    const savedState = await loadKey('state');
+    if(savedState) state = Object.assign(state, savedState);
+
+    if(state.status === 'lunch' && state.lunchStart){
+      const elapsedSec = (Date.now() - state.lunchStart)/1000;
+      const limitSec = settings.lunchLimit * 60;
+      warned25 = elapsedSec >= limitSec * 0.8;
+      warned30 = elapsedSec >= limitSec;
+      lastRepeatMark = warned30 ? elapsedSec : 0;
+    }
+
+    render();
+    updateInstallStatus();
+
+    setInterval(()=>{
+      if(state.status === 'lunch' && state.lunchStart){
+        const elapsedSec = (Date.now() - state.lunchStart)/1000;
+        const limitSec = settings.lunchLimit * 60;
+        if(!warned25 && elapsedSec >= limitSec * 0.8 && elapsedSec < limitSec){
+          warned25 = true;
+          notify('Casi se acaba el almuerzo', 'Quedan ' + Math.ceil((limitSec-elapsedSec)/60) + ' minutos para cumplir el límite.');
+        }
+        if(!warned30 && elapsedSec >= limitSec){
+          warned30 = true; lastRepeatMark = elapsedSec;
+          notify('¡Límite de almuerzo cumplido!', 'Ya pasaron ' + settings.lunchLimit + ' minutos. Toca "Terminar almuerzo" para volver.');
+        } else if(warned30 && (elapsedSec - lastRepeatMark) >= 120){
+          lastRepeatMark = elapsedSec;
+          notify('Sigues en almuerzo', 'Llevas ' + fmtMS(elapsedSec) + '. No olvides fichar tu regreso.');
+        }
+      }
+      render();
+    }, 1000);
+
+    window.addEventListener('beforeunload', persist);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
