@@ -1,0 +1,15 @@
+Proyecto Unity 6000.6.5f1, shooter multiplayer estilo COD Mobile.
+Escena: Assets/Shooter/TestScenes/[BB] Shooter.unity. Codigo custom: Assets/BR_Local/.
+NO uses el proyecto Mixamo/BR200 nuevo. Responde en espanol, cambios minimos, sin builds (pruebo en Play).
+
+Prioridad, en este orden:
+1. Equipar armas bien: la equipada en la mano y la otra en la espalda, con posicion y rotacion correctas (WeaponController.cs). Tecla 1/2 equipa; misma tecla otra vez vuelve a espada + anim GreatSwordRun (Resources/BRAnims).
+2. Camara de cadera (3a persona) segun el arma: [BB] FreeLook.prefab + BRCameraDistanceFix.cs.
+3. Mira ADS en 1a persona: [BB] Aim.prefab, FOV y como se ve cada mira.
+4. Movimiento y animaciones (Mixamo, FBX Humanoid).
+5. Despues: HUD abajo tipo CODM (BRWeaponSlotsHUD), Esc pausa real (PauseMenu), sin trails magenta en pickups.
+
+Controles CODM con teclado:
+WASD mover, mouse mirar, clic izq disparar, clic der mantener = ADS, R recargar, Espacio saltar, C agacharse (toggle), Z tumbarse, Shift sprint, 1/2 armas, Q cambio rapido, E interactuar, G/F granada/tactico, X tirar arma, M mapa, Esc pausa.
+
+Primero lee los scripts y dime que vas a cambiar antes de editar.
